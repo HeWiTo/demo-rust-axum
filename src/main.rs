@@ -4,7 +4,10 @@ use axum::{
         StatusCode,
         Uri
     },
-    response::IntoResponse,
+    response::{
+        IntoResponse,
+        Html
+    },
     handler::Handler
 };
 
@@ -16,6 +19,9 @@ pub async fn main() {
         .fallback(handler_404.into_service())
         .route("/",
             get(hello)
+        )
+        .route("/demo.html", 
+            get(get_demo_html)
         );
 
     //let app = app.fallback(handler_404);
@@ -47,4 +53,10 @@ pub async fn handler_404(uri: Uri) -> impl IntoResponse {
 // immediately respond with status code `200 OK` and with the string.
 pub async fn hello() -> String {
     "Hello, World!".to_string()
+}
+
+// axum handler for "GET /demo.html" which responds with HTML text.
+// The `Html` type sets an HTTP header content-type of `text/html`.
+pub async fn get_demo_html() -> Html<&'static str> {
+    "<h1>Hello, this is HTML Text!</h1>".into()
 }
