@@ -22,9 +22,10 @@ pub async fn main() {
         )
         .route("/demo.html", 
             get(get_demo_html)
+        )
+        .route("/hello.html", 
+            get(hello_html)
         );
-
-    //let app = app.fallback(handler_404);
 
     // Run our application as a hyper server on http://localhost:3000.
     axum::Server::bind(&"0.0.0.0:3000".parse().unwrap())
@@ -59,4 +60,11 @@ pub async fn hello() -> String {
 // The `Html` type sets an HTTP header content-type of `text/html`.
 pub async fn get_demo_html() -> Html<&'static str> {
     "<h1>Hello, this is HTML Text!</h1>".into()
+}
+
+// axum handler that responds with typical HTML coming from a file.
+// This uses the Rust macro `std::include_str` to include a UTF-8 file
+// path, relative to `main.rs`, as a `&'static str` at compile time.
+async fn hello_html() -> Html<&'static str> {
+    include_str!("hello.html").into()
 }
