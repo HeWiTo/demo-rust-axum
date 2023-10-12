@@ -2,7 +2,8 @@ use axum::{
     routing::get,
     http::{
         StatusCode,
-        Uri
+        Uri,
+        header
     },
     response::{
         IntoResponse,
@@ -31,6 +32,9 @@ pub async fn main() {
         )
         .route("/demo-uri", 
             get(demo_uri)
+        )
+        .route("/demo.png", 
+            get(get_demo_png)
         );
 
     // Run our application as a hyper server on http://localhost:3000.
@@ -87,3 +91,16 @@ pub async fn demo_uri(uri: Uri) -> String {
     format!("The URI is: {:?}", uri)
 }
 
+// axum handler for "GET /demo.png" which responds with an image PNG.
+// This sets a header "image/png" then sends the decoded image data.
+async fn get_demo_png() -> impl IntoResponse {
+    let png = concat!(
+        "iVBORw0KGgoAAAANSUhEUgAAAAEAAAAB",
+        "CAYAAAAfFcSJAAAADUlEQVR42mPk+89Q",
+        "DwADvgGOSHzRgAAAAABJRU5ErkJggg=="
+    );
+    (
+        axum::response::Headers([(header::CONTENT_TYPE, "image/png")]),
+        base64::decode(png).unwrap(),
+    )
+}
