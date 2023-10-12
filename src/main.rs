@@ -25,6 +25,9 @@ pub async fn main() {
         )
         .route("/hello.html", 
             get(hello_html)
+        )
+        .route("/demo-status", 
+            get(demo_status)
         );
 
     // Run our application as a hyper server on http://localhost:3000.
@@ -67,4 +70,10 @@ pub async fn get_demo_html() -> Html<&'static str> {
 // path, relative to `main.rs`, as a `&'static str` at compile time.
 async fn hello_html() -> Html<&'static str> {
     include_str!("hello.html").into()
+}
+
+// axum handler for "GET /demo-status" which returns a HTTP status
+// code, such as OK (200), and a custom user-visible string message.
+pub async fn demo_status() -> (StatusCode, String) {
+    (StatusCode::OK, "Everything is OK".to_string())
 }
