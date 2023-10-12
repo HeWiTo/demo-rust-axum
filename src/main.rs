@@ -28,6 +28,9 @@ pub async fn main() {
         )
         .route("/demo-status", 
             get(demo_status)
+        )
+        .route("/demo-uri", 
+            get(demo_uri)
         );
 
     // Run our application as a hyper server on http://localhost:3000.
@@ -77,3 +80,10 @@ async fn hello_html() -> Html<&'static str> {
 pub async fn demo_status() -> (StatusCode, String) {
     (StatusCode::OK, "Everything is OK".to_string())
 }
+
+// axum handler for "GET /demo-uri" which shows the request's own URI.
+// This shows how to write a handler that receives the URI.
+pub async fn demo_uri(uri: Uri) -> String {
+    format!("The URI is: {:?}", uri)
+}
+
