@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use axum::{
     routing::get,
     http::{
@@ -9,7 +11,8 @@ use axum::{
         IntoResponse,
         Html
     },
-    handler::Handler, extract::Path
+    handler::Handler,
+    extract::{Path, Query}
 };
 
 
@@ -45,6 +48,9 @@ pub async fn main() {
         )
         .route("/items/:id", 
             get(get_items_id)
+        )
+        .route("/items",
+            get(get_items)
         );
 
     // Run our application as a hyper server on http://localhost:3000.
@@ -149,4 +155,10 @@ pub async fn delete_foo() -> String {
 // This extracts a path parameter then deserializes it as needed.
 pub async fn get_items_id(Path(id): Path<String>) -> String {
     format!("Get items with path id: {:?}", id)
+}
+
+// axum handler for "GET /items" which uses `axum::extract::Query`.
+// This extracts query parameters and creates a key-value pair map.
+pub async fn get_items(Query(params): Query<HashMap<String, String>>) -> String {
+    format!("Get items with query params: {:?}", params)
 }
