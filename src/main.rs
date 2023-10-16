@@ -9,7 +9,7 @@ use axum::{
         IntoResponse,
         Html
     },
-    handler::Handler
+    handler::Handler, extract::Path
 };
 
 
@@ -42,6 +42,9 @@ pub async fn main() {
             .patch(patch_foo)
             .post(post_foo)
             .delete(delete_foo)
+        )
+        .route("/items/:id", 
+            get(get_items_id)
         );
 
     // Run our application as a hyper server on http://localhost:3000.
@@ -140,4 +143,10 @@ pub async fn post_foo() -> String {
 // This shows our naming convention for HTTP DELETE handlers.
 pub async fn delete_foo() -> String {
    "DELETE foo".to_string()
+}
+
+// axum handler for "GET /items/:id" which uses `axum::extract::Path`.
+// This extracts a path parameter then deserializes it as needed.
+pub async fn get_items_id(Path(id): Path<String>) -> String {
+    format!("Get items with path id: {:?}", id)
 }
