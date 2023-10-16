@@ -59,6 +59,7 @@ pub async fn main() {
         )
         .route("/demo.json", 
             get(get_demo_json)
+            .put(put_demo_json)
         );
 
     // Run our application as a hyper server on http://localhost:3000.
@@ -171,9 +172,16 @@ pub async fn get_items(Query(params): Query<HashMap<String, String>>) -> String 
     format!("Get items with query params: {:?}", params)
 }
 
-// axum handler for "PUT /demo.json" which uses `axum::extract::Json`.
+// axum handler for "GET /demo.json" which uses `axum::extract::Json`.
 // This buffers the request body then deserializes it bu using serde.
 // The `Json` type supports types that implement `serde::Deserialize`.
 pub async fn get_demo_json() -> Json<Value> {
     json!( {"a":"b"} ).into()
+}
+
+// axum handler for "PUT /demo.json" which uses `axum::extract::Json`.
+// This buffers the request body then deserializes it using serde.
+// The `Json` type supports types that implement `serde::Deserialize`.
+pub async fn put_demo_json(Json(data): Json<serde_json::Value>) -> String {
+    format!("Put demo JSON data: {:?}", data)
 }
