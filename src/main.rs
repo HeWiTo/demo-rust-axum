@@ -12,8 +12,13 @@ use axum::{
         Html
     },
     handler::Handler,
-    extract::{Path, Query}
+    extract::{Path, Query}, Json
 };
+
+// Use Serde JSON to serialize/deserialize JSON, such as in a request.
+// axum creates JSON or extracts it by using `axum::extract::Json`.
+// For this demo, see functions `get_demo_json` and `post_demo_json`.
+use serde_json::{json, Value};
 
 
 #[tokio::main]
@@ -51,6 +56,9 @@ pub async fn main() {
         )
         .route("/items",
             get(get_items)
+        )
+        .route("/demo.json", 
+            get(get_demo_json)
         );
 
     // Run our application as a hyper server on http://localhost:3000.
@@ -161,4 +169,11 @@ pub async fn get_items_id(Path(id): Path<String>) -> String {
 // This extracts query parameters and creates a key-value pair map.
 pub async fn get_items(Query(params): Query<HashMap<String, String>>) -> String {
     format!("Get items with query params: {:?}", params)
+}
+
+// axum handler for "PUT /demo.json" which uses `axum::extract::Json`.
+// This buffers the request body then deserializes it bu using serde.
+// The `Json` type supports types that implement `serde::Deserialize`.
+pub async fn get_demo_json() -> Json<Value> {
+    json!( {"a":"b"} ).into()
 }
