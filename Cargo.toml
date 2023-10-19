@@ -29,3 +29,6 @@ base64 = "0.13"
 
 # Types for HTTP requests and responses.
 http = "0.2.6"
+
+# Single assignment cells and lazy values.
+once_cell = "1.10.0"

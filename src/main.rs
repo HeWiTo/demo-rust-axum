@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, thread};
 
 use axum::{
     routing::get,
@@ -20,9 +20,18 @@ use axum::{
 // For this demo, see functions `get_demo_json` and `post_demo_json`.
 use serde_json::{json, Value};
 
+// See file book.rs, which defines the `Book` struct.
+mod book;
+use crate::book::Book;
+
+// See file data.rs, which defines the DATA global variable.
+mod data;
+use crate::data::DATA;
 
 #[tokio::main]
 pub async fn main() {
+    print_data().await;
+
     // Build our application by creating our router
     let app = axum::Router::new()
         .fallback(handler_404.into_service())
@@ -60,6 +69,9 @@ pub async fn main() {
         .route("/demo.json", 
             get(get_demo_json)
             .put(put_demo_json)
+        )
+        .route("/books", 
+            get(get_books)
         );
 
     // Run our application as a hyper server on http://localhost:3000.
@@ -184,4 +196,27 @@ pub async fn get_demo_json() -> Json<Value> {
 // The `Json` type supports types that implement `serde::Deserialize`.
 pub async fn put_demo_json(Json(data): Json<serde_json::Value>) -> String {
     format!("Put demo JSON data: {:?}", data)
+}
+
+// To access data, create a thread, spawn it, then get the lock.
+// When you're done, then join the thread with its parent thread.
+async fn print_data() {
+    thread::spawn(move || {
+        let data = DATA.lock().unwrap();
+        println!("data: {:?}", data);
+    }).join().unwrap()
+}
+
+// axum handler for "GET /books" which responds with a resource page.
+// This demo uses our DATA; a production app could use a database.
+// This demo must clone the DATA in order to sort items by title.
+pub async fn get_books() -> Html<String> {
+    thread::spawn(move || {
+        let data = DATA.lock().unwrap();
+        let mut books = data.values().collect::<Vec<_>>().clone();
+        books.sort_by(|a, b| a.title.cmp(&b.title));
+        books.iter().map(|&book| 
+            format!("<p>{}</p>\n", &book)
+        ).collect::<String>()
+    }).join().unwrap().into()
 }
