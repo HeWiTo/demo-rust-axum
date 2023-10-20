@@ -72,6 +72,7 @@ pub async fn main() {
         )
         .route("/books", 
             get(get_books)
+            .put(put_books)
         )
         .route("/books/:id", 
             get(get_books_id)
@@ -235,3 +236,15 @@ pub async fn get_books_id(axum::extract::Path(id): axum::extract::Path<u32>) -> 
         }
     }).join().unwrap().into()
 }
+
+// axum handler for "PUT /books" which creates a new book resource.
+// This demo shows how axum can extract JSON data into a Book struct.
+pub async fn put_books(Json(book): Json<Book>) -> Html<String> {
+    thread::spawn(move || {
+        let mut data = DATA.lock().unwrap();
+        data.insert(book.id, book.clone());
+        format!("Put book: {}", &book)
+    }).join().unwrap().into()
+}
+
+
