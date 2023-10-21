@@ -76,6 +76,7 @@ pub async fn main() {
         )
         .route("/books/:id", 
             get(get_books_id)
+            .delete(delete_books_id)
         )
         .route("/books/:id/form", 
             get(get_books_id_form)
@@ -290,4 +291,18 @@ pub async fn post_books_id_form(form: Form<Book>) -> Html<String> {
         }
     }).join().unwrap().into()
 }
+
+// axum handler for "DELETE /books/:id" which destroys a resource.
+// This demo extracts an id, then mutates the book in the DATA store.
+pub async fn delete_books_id(Path(id): Path<u32>) -> Html<String> {
+    thread::spawn(move || {
+        let mut data = DATA.lock().unwrap();
+        if data.contains_key(&id) {
+            data.remove(&id);
+            format!("Delete book id: {}", &id)
+        } else {
+            format!("Book id not found: {}", &id)
+        }
+    }).join().unwrap().into()
+} 
 
