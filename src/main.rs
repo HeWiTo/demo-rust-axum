@@ -76,6 +76,9 @@ pub async fn main() {
         )
         .route("/books/:id", 
             get(get_books_id)
+        )
+        .route("/books/:id/form", 
+            get(get_books_id_form)
         );
 
     // Run our application as a hyper server on http://localhost:3000.
@@ -227,7 +230,7 @@ pub async fn get_books() -> Html<String> {
 
 // axum handler for "GET /books/:id" which responds with one resource HTML page.
 // This demo app uses our DATA variable, and iterates on it to find the id.
-pub async fn get_books_id(axum::extract::Path(id): axum::extract::Path<u32>) -> Html<String> {
+pub async fn get_books_id(Path(id): Path<u32>) -> Html<String> {
     thread::spawn(move || {
         let data = DATA.lock().unwrap();
         match data.get(&id) {
@@ -247,4 +250,25 @@ pub async fn put_books(Json(book): Json<Book>) -> Html<String> {
     }).join().unwrap().into()
 }
 
-
+pub async fn get_books_id_form(Path(id): Path<u32>) -> Html<String> {
+    thread::spawn(move || {
+        let data = DATA.lock().unwrap();
+        match data.get(&id) {
+            Some(book) => format!(
+                concat!(
+                    "<form method=\"post\" action=\"/books/{}/form\">\n",
+                    "<input type=\"hidden\" name=\"id\" value=\"{}\">\n",
+                    "<p><input name=\"title\" value=\"{}\"></p>\n",
+                    "<p><input name=\"author\" value=\"{}\"></p>\n",
+                    "<input type=\"submit\" value=\"Save\">\n",
+                    "</form>\n"
+                ),
+                &book.id,
+                &book.id,
+                &book.title,
+                &book.author
+            ),
+            None => format!("<p>Book id {} not found</p>", id),
+        }
+    }).join().unwrap().into()
+}
