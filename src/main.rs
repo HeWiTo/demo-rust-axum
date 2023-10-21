@@ -1,4 +1,8 @@
-use std::{collections::HashMap, thread};
+use std::{
+    collections::HashMap, 
+    thread,
+    net::SocketAddr
+};
 
 use axum::{
     routing::get,
@@ -12,13 +16,24 @@ use axum::{
         Html
     },
     handler::Handler,
-    extract::{Path, Query, Form}, Json
+    extract::{
+        Path,
+        Query,
+        Form
+    },
+    Json
 };
 
 // Use Serde JSON to serialize/deserialize JSON, such as in a request.
 // axum creates JSON or extracts it by using `axum::extract::Json`.
 // For this demo, see functions `get_demo_json` and `post_demo_json`.
 use serde_json::{json, Value};
+
+// Use tracing crates for application-level tracing output.
+use tracing_subscriber::{
+    layer::SubscriberExt,
+    util::SubscriberInitExt,
+};
 
 // See file book.rs, which defines the `Book` struct.
 mod book;
@@ -30,6 +45,11 @@ use crate::data::DATA;
 
 #[tokio::main]
 pub async fn main() {
+    // Start tracing
+    tracing_subscriber::registry()
+        .with(tracing_subscriber::fmt::layer())
+        .init();
+
     print_data().await;
 
     // Build our application by creating our router
@@ -84,7 +104,10 @@ pub async fn main() {
         );
 
     // Run our application as a hyper server on http://localhost:3000.
-    axum::Server::bind(&"0.0.0.0:3000".parse().unwrap())
+    let host = [127,0,0,1];
+    let port = 3000;
+    let addr = SocketAddr::from((host, port));
+    axum::Server::bind(&addr)
         .serve(app.into_make_service())
         .with_graceful_shutdown(shutdown_signal())
         .await
