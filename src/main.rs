@@ -12,7 +12,7 @@ use axum::{
         Html
     },
     handler::Handler,
-    extract::{Path, Query}, Json
+    extract::{Path, Query, Form}, Json
 };
 
 // Use Serde JSON to serialize/deserialize JSON, such as in a request.
@@ -79,6 +79,7 @@ pub async fn main() {
         )
         .route("/books/:id/form", 
             get(get_books_id_form)
+            .post(post_books_id_form)
         );
 
     // Run our application as a hyper server on http://localhost:3000.
@@ -250,6 +251,8 @@ pub async fn put_books(Json(book): Json<Book>) -> Html<String> {
     }).join().unwrap().into()
 }
 
+// axum handler for "GET /books/:id/form" which responds with a form.
+// This demo shows how to write a typical HTML form with input fields.
 pub async fn get_books_id_form(Path(id): Path<u32>) -> Html<String> {
     thread::spawn(move || {
         let data = DATA.lock().unwrap();
@@ -272,3 +275,19 @@ pub async fn get_books_id_form(Path(id): Path<u32>) -> Html<String> {
         }
     }).join().unwrap().into()
 }
+
+// axum handler for "POST /books/:id/form" which submits an HTML form.
+// This demo shows how to do a form submission then update a resource.
+pub async fn post_books_id_form(form: Form<Book>) -> Html<String> {
+    let new_book: Book = form.0;
+    thread::spawn(move || {
+        let mut data = DATA.lock().unwrap();
+        if data.contains_key(&new_book.id) {
+            data.insert(new_book.id, new_book.clone());
+            format!("<p>{}</p>", &new_book)
+        } else {
+            format!("Book id not found: {}", &new_book.id)
+        }
+    }).join().unwrap().into()
+}
+
